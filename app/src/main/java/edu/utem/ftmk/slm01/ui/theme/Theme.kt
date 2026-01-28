@@ -1,6 +1,5 @@
-package edu.utem.ftmk.slm02.ui.theme
+package edu.utem.ftmk.slm01.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

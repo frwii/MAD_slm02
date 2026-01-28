@@ -1,4 +1,4 @@
-package edu.utem.ftmk.slm02.ui.theme
+package edu.utem.ftmk.slm01.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

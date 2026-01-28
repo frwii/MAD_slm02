@@ -61,7 +61,7 @@ std::string runModel(const std::string& prompt) {
     // ================= Load model =================
     llama_model_params model_params = llama_model_default_params();
     const char* model_path =
-            "/data/data/edu.utem.ftmk.slm02/files/qwen2.5-1.5b-instruct-q4_k_m.gguf";
+            "/data/data/edu.utem.ftmk.slm01/files/qwen2.5-1.5b-instruct-q4_k_m.gguf";
 
     llama_model* model = llama_model_load_from_file(model_path, model_params);
     if (!model) {
@@ -282,7 +282,7 @@ std::string runModel(const std::string& prompt) {
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_edu_utem_ftmk_slm02_MainActivity_inferAllergens(
+Java_edu_utem_ftmk_slm01_MainActivity_inferAllergens(
         JNIEnv *env,
         jobject,
         jstring inputPrompt) {

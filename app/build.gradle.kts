@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    namespace = "edu.utem.ftmk.slm02"
+    namespace = "edu.utem.ftmk.slm01"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "edu.utem.ftmk.slm02"
+        applicationId = "edu.utem.ftmk.slm01"
         minSdk = 25
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-package edu.utem.ftmk.slm02
+package edu.utem.ftmk.slm01
 
 import org.junit.Test
 

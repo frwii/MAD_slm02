@@ -1,4 +1,4 @@
-package edu.utem.ftmk.slm02
+package edu.utem.ftmk.slm01
 
 import android.os.Bundle
 import android.widget.TextView
@@ -44,7 +44,7 @@ class FoodDetailActivity : AppCompatActivity() {
         // FORMAT & DISPLAY METRICS
         // ===============================
         val metricsText = """
-            ⏱ Inference Latency
+            Inference Latency
             ${latencyMs} ms
 
             Memory Usage
@@ -52,7 +52,7 @@ class FoodDetailActivity : AppCompatActivity() {
             Native Heap : ${nativeHeapKb} KB
             Total PSS   : ${totalPssKb} KB
 
-            ⚙ LLM Inference Metrics
+            LLM Inference Metrics
             TTFT : ${ttft} ms
             ITPS : ${itps} tokens/sec
             OTPS : ${otps} tokens/sec

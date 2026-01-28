@@ -1,5 +1,4 @@
-
-package edu.utem.ftmk.slm02
+package edu.utem.ftmk.slm01
 
 import android.content.Context
 import android.content.Intent
@@ -29,36 +28,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Native inference
     external fun inferAllergens(input: String): String
 
-    private val allergenKeywordMap = mapOf(
-        "fish" to listOf("fish", "anchovy", "mackerel", "tuna", "salmon", "pollock","cod"),
-        "soy" to listOf("soy", "soya", "soybeans", "soy sauce", "lecithin"),
-        "milk" to listOf("milk", "cheese", "butter", "cream", "yoghurt", "yogurt"),
-        "wheat" to listOf("wheat", "flour", "gluten"),
-        "egg" to listOf("egg", "albumen"),
-        "peanut" to listOf("peanut"),
-        "tree nut" to listOf("almond", "hazelnut", "walnut", "cashew"),
-        "sesame" to listOf("sesame"),
-        "shellfish" to listOf("shrimp", "prawn", "crab", "lobster")
+    private val allowedAllergens = setOf(
+        "milk", "egg", "peanut", "tree nut",
+        "wheat", "soy", "fish", "shellfish", "sesame"
     )
 
-    // 🔒 BASE PROMPT (UNCHANGED)
     private fun buildPrompt(ingredients: String): String {
         return """
-        Task: Detect food allergens.
+        Analyze these ingredients and identify allergens.
 
-        Ingredients:
-        $ingredients
+        Ingredients: $ingredients
 
-        Allowed allergens:
-        milk, egg, peanut, tree nut, wheat, soy, fish, shellfish, sesame
+        Allowed allergens: milk, egg, peanut, tree nut, wheat, soy, fish, shellfish, sesame
 
-        Rules:
-        - Output ONLY a comma-separated list of allergens.
-        - If none are present, output EMPTY.
+        Output ONLY comma-separated allergens or EMPTY.
+        Allergens:
         """.trimIndent()
+    }
+
+    private fun wrapWithChatTemplate(prompt: String): String {
+        return "<|im_start|>user\n$prompt<|im_end|>\n<|im_start|>assistant\n"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,9 +86,8 @@ class MainActivity : AppCompatActivity() {
 
                 selectedDataset.forEachIndexed { index, item ->
 
-                    val ingredientsText = item.ingredients.lowercase()
-                    val prompt = buildPrompt(item.ingredients)
-
+                    val promptContent = buildPrompt(item.ingredients)
+                    val prompt = wrapWithChatTemplate(promptContent)
 
                     val javaBefore = MemoryReader.javaHeapKb()
                     val nativeBefore = MemoryReader.nativeHeapKb()
@@ -113,6 +103,8 @@ class MainActivity : AppCompatActivity() {
 
                     val parts = rawResult.split("|", limit = 2)
                     val meta = parts[0]
+                    val rawOutput = if (parts.size > 1) parts[1] else ""
+
                     val metricsMap = parseMetrics(meta)
 
                     val metrics = InferenceMetrics(
@@ -125,24 +117,25 @@ class MainActivity : AppCompatActivity() {
                         otps = metricsMap["OTPS"] ?: -1L,
                         oet = metricsMap["OET_MS"] ?: -1L
                     )
-                    // ================================================
 
-                    val mapped = item.allergensMapped
+                    // ================= FIXED MODEL LOGIC =================
+
+                    val predictedAllergens = rawOutput
+                        .replace("Ġ", "")              // remove token artifact
+                        .lowercase()
                         .split(",")
-                        .map { it.trim().lowercase() }
-                        .filter { it.isNotEmpty() }
+                        .map { it.trim() }
+                        .filter { it in allowedAllergens }
 
-                    val detected = allergenKeywordMap
-                        .filter { (_, keywords) ->
-                            keywords.any { ingredientsText.contains(it) }
-                        }.keys
+                    val predictedText = if (predictedAllergens.isEmpty()) {
+                        "EMPTY"
+                    } else {
+                        predictedAllergens.joinToString(", ")
+                    }
 
-                    val predicted = mapped.intersect(detected).toList()
-                    val predictedText = if (predicted.isEmpty()) "EMPTY" else predicted.joinToString(", ")
+                    // ====================================================
 
                     val start = styled.length
-
-                    // 🍽 CLICKABLE FOOD NAME
                     styled.append("🍽${item.name}\n")
                     styled.setSpan(
                         StyleSpan(Typeface.BOLD),
@@ -160,7 +153,6 @@ class MainActivity : AppCompatActivity() {
                             intent.putExtra("mapped", item.allergensMapped)
                             intent.putExtra("predicted", predictedText)
 
-                            // 🔹 PASS METRICS TO DETAIL PAGE
                             intent.putExtra("latencyMs", metrics.latencyMs)
                             intent.putExtra("javaHeapKb", metrics.javaHeapKb)
                             intent.putExtra("nativeHeapKb", metrics.nativeHeapKb)
@@ -200,7 +192,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ===== METRICS PARSER =====
     private fun parseMetrics(meta: String): Map<String, Long> {
         val map = mutableMapOf<String, Long>()
         meta.split(";").forEach {
@@ -249,6 +240,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
-
-
